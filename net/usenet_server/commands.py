@@ -125,31 +125,53 @@ def writePost(msg):
 	print path
 	if(os.path.isdir(path) == False):
 		return False
-	post_subject = msg[1].split(':')[1]
+	raw_subject = msg[1].split(':')[1].split()
+	post_subject = '_'.join(raw_subject)
 	path+= post_subject
 	fd = open(path, "a")
-	fd.write(msg[2]+'\r\n')	# #-bytes
-	fd.write(msg[3]+'\r\n') # line-count
-	fd.write(msg[4]+'\r\n')	# \r
-	fd.write(msg[5]+'\r\n') # \r
+	#write payload to file
+	fd.write('\n'.join(msg[6:len(msg)]))
 	
-	#payload
-	for i in range(6, len(msg)):
-		fd.write(msg[i])
-		if(i != len(msg)-1):
-			fd.write('\n')
-	fd.write('\r\n')
 	fd.close()
 	return True
 
 
 
-
-
-
-
-
-
+def printGroupPosts(msg):
+	group = msg[0].split()[1]
+	if (isGroup(group) == False):
+		return False
+	path = os.path.abspath(group_dir)	
+	path += '/'.join(group.split('.')) + '/'
+	subject = msg[1].split(':')[1].split()
+	path += '_'.join(subject)
+	if (os.path.isfile(path) == False):
+		return False
+	try:
+		fd = open(path, "r")
+	except IOError:
+		return False
+		
+def isGroup(group=None):
+	if (group == None):
+		return False
+	fd = open(group_file, "r")
+	grouplist = fd.readlines()
+	
+	hi = len(grouplist)
+	lo = 0
+	while(True):
+		if (hi<lo):
+			return False
+		mid = int((hi-lo)/2)
+		if(group == grouplist[mid]):
+			return True
+		elif(group < grouplist[mid]):
+			hi = mid
+			lo = lo
+		else:
+			hi = hi
+			lo = mid + 1
 
 
 	#havesubgroup = False	# we are looking for a subgroup
