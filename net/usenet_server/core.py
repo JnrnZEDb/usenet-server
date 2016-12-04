@@ -24,37 +24,34 @@ establish a new connection with a client and spawn a thread to handle all reques
 def connection_thread(socketlist):
 	connectionSocket = socketlist[0]
 	addr = socketlist[1]
-	msg = validateMsg(connectionSocket.recv(1024))
+	msg = connectionSocket.recv(1024).split('\n')
 
-
-	if(msg == False or msg[0]!='LOGIN'):		
+	
+	if(validateLogin(msg) == False):		
 		connectionSocket.send(getResponseMsg('UNAUTHORIZED'))
 		connectionSocket.close()
 		return
 	else:
-		username = msg[1]
+		username = msg[0].split()[1]
 		connectionSocket.send(getResponseMsg('AUTHORIZED'))
-		print 'Transmission Accepted. Logging In'
+		print 'Transmission Accepted. Logging In:' + username
 	# loop forever while the user is logged in
-        reader_mode = False
-	group_mode = False
 	while(1):
 		print 'Waiting for a request'
-		msg = (connectionSocket.recv(1024)).split()
+		msg = (connectionSocket.recv(1024)).split('\n')
 		
 		#if the request is corrupted
 		if(validateMsg(msg) == False):
-			connectionSocket.send(getResponseMsg('UNAUTHORIZED'))
-			connectionSocket.close()
-			break
+			connectionSocket.send(getResponseMsg('INVALID'))
+
 		#if the user decides to log out
-		elif(msg[0] == 'LOGOUT'):
+		elif(validateLogout(msg)==True):
 			connectionSocket.send(getResponseMsg('PASS'))
 			connectionSocket.close()
 			break
 		else:
-			response = parseMsg(msg, username)
-			connectionSocket.send(getResponseMsg('PASS', response))
+			response = createResponse(msg, username)
+			connectionSocket.send(response)
 				
 	print "end of transmission, thread now dies"
 

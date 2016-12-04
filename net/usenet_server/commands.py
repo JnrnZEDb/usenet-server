@@ -1,7 +1,9 @@
-
+import os.path
+import os
 group_file = "var/groups"
-
-
+group_dir = "var/"
+#class Request():
+global mutex_lock 
 """
 Print out a help message for the client
 
@@ -50,7 +52,7 @@ def getGroupList(username=None):
 	f = open(group_file)	
 	#split file into list using readlines
 	sf = f.readlines()
-
+	
 	for i in range(0, len(sf)):
 		#further split each line
 		linesplit = sf[i].split(":")
@@ -105,3 +107,63 @@ def printGroupList(username=None):
 	payload = '# Bytes: ' + str(strlen) + '\n' + 'Line Count: ' + str(strlines) + '\n' + '\r\n\r\n' + groupstring
 
 	return payload
+
+
+"""
+Store the contents of a post into the groups folder
+"""
+def writePost(msg):
+	#get the seperate parts of the group
+	group = msg[0].split()[1].split('.')
+	startpath = os.path.abspath(group_dir) + '/' # absolute path 
+	path = startpath #current path
+	fd = None # file descriptor
+	# create file path to group	
+	for i in range(0, len(group)):
+		path += group[i]
+		path+= '/'
+	print path
+	if(os.path.isdir(path) == False):
+		return False
+	post_subject = msg[1].split(':')[1]
+	path+= post_subject
+	fd = open(path, "a")
+	fd.write(msg[2]+'\r\n')	# #-bytes
+	fd.write(msg[3]+'\r\n') # line-count
+	fd.write(msg[4]+'\r\n')	# \r
+	fd.write(msg[5]+'\r\n') # \r
+	
+	#payload
+	for i in range(6, len(msg)):
+		fd.write(msg[i])
+		if(i != len(msg)-1):
+			fd.write('\n')
+	fd.write('\r\n')
+	fd.close()
+	return True
+
+
+
+
+
+
+
+
+
+
+
+	#havesubgroup = False	# we are looking for a subgroup
+		#dirlist = os.listdir(path) # look through directory
+		#loop through current directory
+		#for j in range(0, len(dirlist)):
+		#	if (dirlist[j] == group[i]):
+				#add to current path
+		#		path += '/' + dirlist[j]
+		#		havesubgroup = True #found a subgroup
+		#		break
+		#if(havesubgroup==False):
+		#	print "Error: Group does not exist!"
+		#	return False
+		#if (i == len(group)-1):
+		#	break
+
