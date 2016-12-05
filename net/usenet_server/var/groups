@@ -1,2 +1,4 @@
-comp:programming:test1,test2,
-comp:os:threads:test1,
+comp.lang.c:0:test2,test3
+comp.os.threads:0:test1,test3
+comp.programming:0:test1,test2
+comp.test:0:
