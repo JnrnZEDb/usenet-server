@@ -12,7 +12,7 @@ def getGroupList(username=None):
 	#open group file
 	f = open(group_file)	
 	#split file into list using readlines
-	sf = f.readlines()
+	sf = f.read().split('\n')
 	
 	for i in range(0, len(sf)):
 		#further split each line
@@ -23,8 +23,7 @@ def getGroupList(username=None):
 		group.append(linesplit[1])
 		# get the list of subscribed users from this group
 		userlist = linesplit[2].split(",")
-		# initially assume user is not subscribed to this group
-		group.append(False)
+		# initially assume user is not subscribed to this group		group.append(False)
 		for j in range(0, len(userlist)):
 			# check if user is subscribed to group
 			if(userlist != None \
@@ -120,38 +119,117 @@ def readPost(group, subject):
 	return payload		
 def isGroup(group=None):
 	if (group == None):
-		return False
+		return -1
 	fd = open(group_file, "r")
 	grouplist = fd.readlines()
 	
-	hi = len(grouplist)
+	hi = len(grouplist)-1
 	lo = 0
 	while(True):
 		if (hi<lo):
-			return False
-		mid = int((hi-lo)/2)
-		if(group == grouplist[mid]):
-			return True
-		elif(group < grouplist[mid]):
+			return -1
+		mid = int((hi+lo)/2)
+		print mid
+		current = grouplist[mid].split(':')[0]
+		print current
+		if(group == current):
+			print 'success'
+			return mid
+		elif(group < current):
 			hi = mid
 			lo = lo
 		else:
 			hi = hi
 			lo = mid + 1
 
+"""
+Subscribe a specific user to a specific group
+"""
+def subscribe(username, group):
+	try:
+		fd = open(group_file)
+	except IOError:
+		return -1	
 
-	#havesubgroup = False	# we are looking for a subgroup
-		#dirlist = os.listdir(path) # look through directory
-		#loop through current directory
-		#for j in range(0, len(dirlist)):
-		#	if (dirlist[j] == group[i]):
-				#add to current path
-		#		path += '/' + dirlist[j]
-		#		havesubgroup = True #found a subgroup
-		#		break
-		#if(havesubgroup==False):
-		#	print "Error: Group does not exist!"
-		#	return False
-		#if (i == len(group)-1):
-		#	break
+	#perform binary search to find group
+	try:
+		grouplist = fd.read().split('\n')
+	except IOError:
+		return -1
+	mid = isGroup(group)
+	if (mid < 0):
+		return -1	
+	current = grouplist[mid].split(':')
+	userlist = current[2].split(',')
+	# if userlist is empty, we're dealing with 0 or 1 entries.
+
+	if(userlist == ['']):
+		userlist = []
+	else:
+		for i in range(0, len(userlist)):
+			if(userlist[i] == username):
+				return -2	
+
+	userlist.append(username)
+	current[2] = ','.join(userlist)
+	grouplist[mid] = ':'.join(current)	
+	fd.close()
+	
+	try:
+		fd = open(group_file, "w")
+	except IOError:
+		print 'Error from second open'
+		return -1
+	
+	fd.writelines('\n'.join(grouplist))
+	fd.close()
+
+	return 0
+
+def unsubscribe(username, group):
+	try:
+		fd = open(group_file)
+	except IOError:
+		return -1	
+
+	#perform binary search to find group
+	try:
+		grouplist = fd.read().split('\n')
+	except IOError:
+		return -1
+	mid = isGroup(group)
+	if (mid < 0):
+		return -1	
+	current = grouplist[mid].split(':')
+	userlist = current[2].split(',')
+	haveuser = False
+	if(userlist == ['']):
+		return -2
+	else:
+		for i in range(0, len(userlist)):
+			print userlist[i]
+			if(userlist[i] == username):
+				haveuser = True 
+				break
+	if(haveuser == False):
+		return -2
+	
+
+	del userlist[i]
+	current[2] = ','.join(userlist)
+	grouplist[mid] = ':'.join(current)	
+	fd.close()
+	
+	try:
+		fd = open(group_file, "w")
+	except IOError:
+		print 'Error from second open'
+		return -1
+	
+	fd.writelines('\n'.join(grouplist))
+	fd.close()
+
+	return 0
+
+	return None
 

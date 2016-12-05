@@ -158,14 +158,20 @@ def createResponse(msg, username=None):
 		return getResponseMsg("EGID")
 	elif(command == 'SUBSCRIBE'):
 		groupid = msg[0].split()[1]
-		response = subscribe(username, group)
-
-		if(response==None):
+		response = subscribe(username, groupid)
+		if(response==-1):
 			return getResponseMsg("EGID")
-		elif(response==False):
+		elif(response==-2):
 			return getResponseMsg("SUBSCRIBE")
 		else:
-			return getResponseMsg("PASS", response)
+			return getResponseMsg("PASS")
 	elif(command == 'UNSUBSCRIBE'):
-		return getResponseMsg("UNSUBSCRIBE")
+		groupid = msg[0].split()[1]
+		response = unsubscribe(username, groupid)
+		if(response==-1):
+			return getResponseMsg("EGID")
+		elif(response==-2):
+			return getResponseMsg("UNSUBSCRIBE")
+		else:
+			return getResponseMsg("PASS")
 

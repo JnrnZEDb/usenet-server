@@ -2,7 +2,7 @@ from socket import *
 clientSocket = socket(AF_INET, SOCK_STREAM)
 clientSocket.connect(('localhost', 12000))
 
-login = 'LOGIN test2 USENET/0.8.1\n\r\n\r\n'
+login = 'LOGIN test3 USENET/0.8.1\n\r\n\r\n'
 
 clientSocket.send(login)
 msg =  clientSocket.recv(1024)
@@ -41,4 +41,18 @@ while(1):
 		print clientSocket.recv(1024)
 	elif (raw == 'read'):
 		clientSocket.send(read)
-		print clientSocket.recv(1024)		
+		print clientSocket.recv(1024)	
+	elif (raw == 'subscribe'):
+		s = raw_input('Enter group:')
+		if (s != "" and s != None):
+			subscribe =      'SUBSCRIBE '+ s +\
+					 ' USENET/0.8.1\n'
+			clientSocket.send(subscribe)	
+			print clientSocket.recv(1024)
+	elif (raw == 'unsubscribe'):
+		s = raw_input('Enter group:')
+		if (s != "" and s != None):
+			unsubscribe =    'UNSUBSCRIBE '+ s +\
+					 ' USENET/0.8.1\n'		
+			clientSocket.send(unsubscribe)	
+			print clientSocket.recv(1024)
