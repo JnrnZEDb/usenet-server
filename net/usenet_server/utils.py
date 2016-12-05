@@ -122,6 +122,7 @@ def getResponseMsg(response,payload=None):
 		
 def checkRequest(request):
 	if(request == "LOGIN"
+	or request == "GROUP"
 	or request == "SUBSCRIBE"
 	or request == "UNSUBSCRIBE"
 	or request == "LIST" 
@@ -142,11 +143,29 @@ def createResponse(msg, username=None):
 			return getResponseMsg('EPID')
 		else:
 			return getResponseMsg('PASS')
-	elif(command == 'LIST'):
+	elif(command == 'GROUP'):
 		response = printGroupList(username)
 		return getResponseMsg('PASS', response)		
-	
+	elif(command == 'READ'):
+		group = msg[0].split()[1]
+		subject ='_'.join(msg[1].split(':'[1].split())) 
+		response = readPost(group, subject)
+		if (response == False):
+			return getResponseMsg("EPID")
+		else:	
+			return getResponseMsg('PASS', response)
+	elif(command == 'LIST'):
+		return getResponseMsg("EGID")
+	elif(command == 'SUBSCRIBE'):
+		groupid = msg[0].split()[1]
+		response = subscribe(username, group)
 
-
-
+		if(response==None):
+			return getResponseMsg("EGID")
+		elif(response==False):
+			return getResponseMsg("SUBSCRIBE")
+		else:
+			return getResponseMsg("PASS", response)
+	elif(command == 'UNSUBSCRIBE'):
+		return getResponseMsg("UNSUBSCRIBE")
 

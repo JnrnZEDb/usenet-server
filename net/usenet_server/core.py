@@ -38,8 +38,12 @@ def connection_thread(socketlist):
 	# loop forever while the user is logged in
 	while(1):
 		print 'Waiting for a request'
-		msg = (connectionSocket.recv(1024)).split('\n')
-		
+		raw = (connectionSocket.recv(1024))
+		if (raw == ""):
+			print "Error: Client disconnected"
+			connectionSocket.close()
+			break
+		msg = raw.split('\n')
 		#if the request is corrupted
 		if(validateMsg(msg) == False):
 			connectionSocket.send(getResponseMsg('INVALID'))
