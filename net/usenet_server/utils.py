@@ -147,11 +147,15 @@ def createResponse(msg, username=None):
 		response = printGroupList(username)
 		return getResponseMsg('PASS', response)		
 	elif(command == 'READ'):
-		group = msg[0].split()[1]
-		subject ='_'.join(msg[1].split(':'[1].split())) 
-		response = readPost(group, subject)
-		if (response == False):
+		raw_group = msg[0].split()[1].split('.')
+		group ='.'.join(raw_group[0:len(raw_group)-1]) 
+		print group
+		post = raw_group[len(raw_group)-1]
+		response = readPost(group, post)
+		if (response == -1):
 			return getResponseMsg("EPID")
+		elif(response == -2):
+			return getResponseMsg("EGID")
 		else:	
 			return getResponseMsg('PASS', response)
 	elif(command == 'LIST'):

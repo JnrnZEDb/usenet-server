@@ -18,8 +18,8 @@ post =  'POST comp.lang.c USENET/0.8.1\n'+\
 	'\n'+\
 	"How can I create a posix thread? What's the difference\n"+\
 	'bewtween other implementations'
-read =  "READ comp.lang.c USENET/0.8.1\n"+\
-	"post-subject:POSIX Threads"
+read =  "READ comp.lang.c.0x4e USENET/0.8.1\n"
+List =  "LIST comp.lang.c USENET/0.8.1\n"
 while(1):
 	raw  = raw_input();
 	if (raw == ""):
@@ -56,3 +56,6 @@ while(1):
 					 ' USENET/0.8.1\n'		
 			clientSocket.send(unsubscribe)	
 			print clientSocket.recv(1024)
+	elif (raw == 'list'):
+		clientSocket.send(List)
+		print clientSocket.recv(1024)

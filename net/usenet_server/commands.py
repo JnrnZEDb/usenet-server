@@ -1,9 +1,12 @@
 import os.path
 import os
+from threading import Thread, Lock
+from time import *
 group_file = "var/groups"
 group_dir = "var/"
 #class Request():
-global mutex_lock 
+mutex = Lock()
+mutex_sub = Lock()
 """
 Returns a list of all groups as well as if a user is subscribed to them
 """
@@ -74,6 +77,7 @@ def printGroupList(username=None):
 Store the contents of a post into the groups folder
 """
 def writePost(msg):
+
 	#get the seperate parts of the group
 	group = msg[0].split()[1].split('.')
 	startpath = os.path.abspath(group_dir) + '/' # absolute path 
@@ -83,40 +87,69 @@ def writePost(msg):
 	for i in range(0, len(group)):
 		path += group[i]
 		path+= '/'
-	print path
 	if(os.path.isdir(path) == False):
 		return False
-	raw_subject = msg[1].split(':')[1].split()
-	post_subject = '_'.join(raw_subject)
-	path+= post_subject
-	fd = open(path, "a")
-	#write payload to file
-	fd.write('\n'.join(msg[6:len(msg)]))
+	post_subject = msg[1].split(':')[1]
+	post_hash = getHash(post_subject)
+	path+= str(post_hash)
+	mutex.acquire()
+	try:
+		#prepare to write to post
+		fd = open(path, "a+")
+		#get old posts first
+		old_posts = fd.readlines()
+		fd.close()
 	
-	fd.close()
-	return True
+		#overwrite current file so that the newest post is on top
+		fd = open(path, "w")
+		#write payload to file
+		fd.write('Group: ' + '.'.join(group) + '\n')
+		fd.write('Subject: ' + post_subject + '\n')
+		fd.write('\n'.join(msg[6:len(msg)]))
+		if(old_posts != []):
+			fd.write('\n\n')
+		#write in old posts
+		fd.write(''.join(old_posts))
+	
+		fd.close()
+		return True
+	finally:
+		mutex.release()
 
+def getHash(post_subject):
+	return hex(hash(post_subject)%757)
 
-
-def readPost(group, subject):
-	if (isGroup(group) == False):
-		return False
-	path = os.path.abspath(group_dir)	
+def readPost(group, posthash):
+	mutex_sub.acquire()
+	try:	
+		if (isGroup(group) < 0):
+			return -2
+	finally:
+		mutex_sub.release()
+	path = os.path.abspath(group_dir) + '/'	
 	path += '/'.join(group.split('.')) + '/'
-	path += subject
+	path += posthash
+	print path
 	if (os.path.isfile(path) == False):
-		return False
+		return -1
+	mutex.aquire()
 	try:
 		fd = open(path, "r")
+		post = fd.readlines()
+		lines = str(len(post))
+		poststring = ''.join(post)
+		numbytes = str(len(poststring))
+		payload = 'post-subject:' + group + '\n' +\
+			  '#-bytes:' 	  + lines + '\n' +\
+			  'line-count:'   + numbytes + '\n'+\
+			  '\r\n\r\n' +\
+			  poststring
+		return payload	
 	except IOError:
-		return False
-	post = fd.readlines
-	lines = str(len(post))
-	poststring = '\n'.join(post)
-	numbytes = str(len(poststring))
-	payload = 'post-subject:'+group+'#-bytes:'+lines+'line-count:'+numbytes+'\r\n\r\n'+poststring
+		return -2
+	finally:
+		mutex.release()
 	
-	return payload		
 def isGroup(group=None):
 	if (group == None):
 		return -1
@@ -129,11 +162,8 @@ def isGroup(group=None):
 		if (hi<lo):
 			return -1
 		mid = int((hi+lo)/2)
-		print mid
 		current = grouplist[mid].split(':')[0]
-		print current
 		if(group == current):
-			print 'success'
 			return mid
 		elif(group < current):
 			hi = mid
@@ -146,90 +176,125 @@ def isGroup(group=None):
 Subscribe a specific user to a specific group
 """
 def subscribe(username, group):
+	
+	mutex_sub.acquire()
 	try:
 		fd = open(group_file)
-	except IOError:
-		return -1	
 
-	#perform binary search to find group
-	try:
+		#perform binary search to find group
 		grouplist = fd.read().split('\n')
-	except IOError:
-		return -1
-	mid = isGroup(group)
-	if (mid < 0):
-		return -1	
-	current = grouplist[mid].split(':')
-	userlist = current[2].split(',')
-	# if userlist is empty, we're dealing with 0 or 1 entries.
+		mid = isGroup(group)
+		if (mid < 0):
+			return -1	
+		current = grouplist[mid].split(':')
+		userlist = current[2].split(',')
+		# if userlist is empty, we're dealing with 0 or 1 entries.
 
-	if(userlist == ['']):
-		userlist = []
-	else:
-		for i in range(0, len(userlist)):
-			if(userlist[i] == username):
-				return -2	
-
-	userlist.append(username)
-	current[2] = ','.join(userlist)
-	grouplist[mid] = ':'.join(current)	
-	fd.close()
+		if(userlist == ['']):
+			userlist = []
+		else:
+			for i in range(0, len(userlist)):
+				if(userlist[i] == username):
+					return -2	
+		userlist.append(username)
+		current[2] = ','.join(userlist)
+		grouplist[mid] = ':'.join(current)	
+		fd.close()
 	
-	try:
 		fd = open(group_file, "w")
-	except IOError:
-		print 'Error from second open'
-		return -1
-	
-	fd.writelines('\n'.join(grouplist))
-	fd.close()
+		fd.writelines('\n'.join(grouplist))
+		fd.close()
 
-	return 0
+		return 0
+	except IOError:
+		return -1
+	finally:
+		mutex_sub.release()
 
 def unsubscribe(username, group):
+	mutex_sub.acquire()
 	try:
 		fd = open(group_file)
-	except IOError:
-		return -1	
-
-	#perform binary search to find group
-	try:
+		#perform binary search to find group
 		grouplist = fd.read().split('\n')
-	except IOError:
-		return -1
-	mid = isGroup(group)
-	if (mid < 0):
-		return -1	
-	current = grouplist[mid].split(':')
-	userlist = current[2].split(',')
-	haveuser = False
-	if(userlist == ['']):
-		return -2
-	else:
-		for i in range(0, len(userlist)):
-			print userlist[i]
-			if(userlist[i] == username):
-				haveuser = True 
-				break
-	if(haveuser == False):
-		return -2
+
+		mid = isGroup(group)
+		if (mid < 0):
+			return -1	
+		current = grouplist[mid].split(':')
+		userlist = current[2].split(',')
+		haveuser = False
+		if(userlist == ['']):
+			return -2
+		else:
+			for i in range(0, len(userlist)):
+				print userlist[i]
+				if(userlist[i] == username):
+					haveuser = True 
+					break
+		if(haveuser == False):
+			return -2
 	
 
-	del userlist[i]
-	current[2] = ','.join(userlist)
-	grouplist[mid] = ':'.join(current)	
-	fd.close()
+		del userlist[i]
+		current[2] = ','.join(userlist)
+		grouplist[mid] = ':'.join(current)	
+		fd.close()
 	
-	try:
 		fd = open(group_file, "w")
-	except IOError:
-		print 'Error from second open'
-		return -1
 	
-	fd.writelines('\n'.join(grouplist))
-	fd.close()
+		fd.writelines('\n'.join(grouplist))
+		fd.close()
 
-	return 0
+		return 0
+	except IOError:
+		return -1
+	finally:
+		mutex_sub.release()
 
-	return None
 
+
+def printPostList(group):
+	postlist = []
+
+	path = os.path.abspath(group_dir) + '/'	
+	path += '/'.join(group.split('.')) + '/'	
+	if(os.path.isdir(path) == False):
+		return -1
+	posts = os.listdir(path)
+	postcount = 0
+	mutex.acquire()
+	try:
+		for i in range(0, len(posts)):
+			current = path + posts[i]
+			if(os.path.isfile(current) == True):		
+				fd = open(current, "r")
+				lines = fd.read().split('\n')
+				group = lines[1].split(': ')[1]
+				dateline = lines[3].split(': ')
+				print dateline
+				date = dateline[1]
+				stamp = mktime\
+				        (strptime(date, "%a, %b %d %H:%M:%S %Z %Y"))
+ 				postlist.append([group, date, stamp ])		
+	except IOError:
+		return -2
+	finally:
+		mutex.release()
+	return formatPostList(postlist)
+def formatPostList(postlist):
+	poststring = ""
+	sortedlist = sorted(postlist, key=getKey)
+	for i in range(0, len(sortedlist)):
+		poststring += 	'( ' 			  +\
+				getHash(sortedlist[i][0]) +\
+				', N, ' 		  +\
+				sortedlist[i][1] 	  +\
+				', ' 			  +\
+				sortedlist[i][0]	  +\
+				' )\n'
+	print sortedlist
+	return poststring
+
+def getKey(item):
+	return item[2]
