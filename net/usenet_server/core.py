@@ -42,7 +42,7 @@ def connection_thread(socketlist):
 		raw = (connectionSocket.recv(1024))
 		print raw
 		if (raw == ""):
-			print "Error: Client disconnected"
+			#print "Error: Client disconnected"
 			connectionSocket.close()
 			break
 		msg = raw.split('\n')
@@ -57,6 +57,7 @@ def connection_thread(socketlist):
 			break
 		else:
 			response = createResponse(msg, username)
+			#print response
 			connectionSocket.send(response)
 				
 	print "end of transmission, thread now dies"
