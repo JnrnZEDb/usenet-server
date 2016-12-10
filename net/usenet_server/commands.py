@@ -16,15 +16,17 @@ def getGroupList(username=None):
 	f = open(group_file)	
 	#split file into list using readlines
 	sf = f.read().split('\n')
-	
-	for i in range(0, len(sf)):
+	print sf	
+	for i in range(0, len(sf)-1):
 		#further split each line
 		linesplit = sf[i].split(":")
 		# get the group name from the current line
 		group = []
 		group.append(linesplit[0])
 		group.append(linesplit[1])
+		group.append(False)
 		# get the list of subscribed users from this group
+		#if(len(linesplit) == 3):
 		userlist = linesplit[2].split(",")
 		# initially assume user is not subscribed to this group		group.append(False)
 		for j in range(0, len(userlist)):
@@ -129,7 +131,7 @@ def readPost(group, posthash):
 	path = os.path.abspath(group_dir) + '/'	
 	path += '/'.join(group.split('.')) + '/'
 	path += posthash
-	print path
+	#print path
 	if (os.path.isfile(path) == False):
 		return -1
 	mutex.aquire()
@@ -228,7 +230,7 @@ def unsubscribe(username, group):
 			return -2
 		else:
 			for i in range(0, len(userlist)):
-				print userlist[i]
+				#print userlist[i]
 				if(userlist[i] == username):
 					haveuser = True 
 					break
@@ -272,7 +274,7 @@ def printPostList(group):
 				lines = fd.read().split('\n')
 				group = lines[1].split(': ')[1]
 				dateline = lines[3].split(': ')
-				print dateline
+				#print dateline
 				date = dateline[1]
 				stamp = mktime\
 				        (strptime(date, "%a, %b %d %H:%M:%S %Z %Y"))
@@ -293,7 +295,7 @@ def formatPostList(postlist):
 				', ' 			  +\
 				sortedlist[i][0]	  +\
 				' )\n'
-	print sortedlist
+	#print sortedlist
 	return poststring
 
 def getKey(item):

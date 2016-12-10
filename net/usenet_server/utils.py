@@ -31,8 +31,16 @@ def validateMsg(msg):
 		return False
 	elif(command == 'READ' and validateRead(msg) == False):
 		return False
+	elif(command == 'LIST' and validateList(msg) == False):
+		return False
 	else:	
 		return True	
+
+"""
+Validates a LIST request
+"""
+def validateList(msglist):
+	return True
 
 """
 Validates a READ request
@@ -42,8 +50,7 @@ def validateRead(msglist):
 
 
 def validateLogout(msglist):
-	if (msglist == None or len(msglist) != 4 or msglist[1] != '\r' \
-	or msglist[2] != '\r'):
+	if (msglist == None or len(msglist) != 1 ):
 		return False
 	command = msglist[0].split()
 	if ( command==None or len(command) != 2 or command[0]!='LOGOUT'\
@@ -57,8 +64,7 @@ def validateLogout(msglist):
 Validates a LOGIN request
 """
 def validateLogin(msglist):
-	if (msglist == None or len(msglist) != 4 or msglist[1] != '\r' \
-	or msglist[2] != '\r'):
+	if (msglist == None or len(msglist) != 1 ):
 		return False
 	command = msglist[0].split()
 	if ( command==None or len(command) != 3 or command[0]!='LOGIN'\
@@ -159,7 +165,15 @@ def createResponse(msg, username=None):
 		else:	
 			return getResponseMsg('PASS', response)
 	elif(command == 'LIST'):
-		return getResponseMsg("EGID")
+		group = msg[0].split()[1]
+		response = printPostList(group)
+
+		if(response == -1):
+			return getResponseMsg("EGID")
+		elif(response == -2):
+			return getResponseMsg("INVALID")
+		else:
+			return getResponseMsg("PASS", response)
 	elif(command == 'SUBSCRIBE'):
 		groupid = msg[0].split()[1]
 		response = subscribe(username, groupid)

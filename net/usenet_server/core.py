@@ -26,19 +26,21 @@ def connection_thread(socketlist):
 	addr = socketlist[1]
 	msg = connectionSocket.recv(1024).split('\n')
 
-	
+	print msg	
 	if(validateLogin(msg) == False):		
 		connectionSocket.send(getResponseMsg('UNAUTHORIZED'))
 		connectionSocket.close()
 		return
 	else:
 		username = msg[0].split()[1]
+		print getResponseMsg('AUTHORIZED')
 		connectionSocket.send(getResponseMsg('AUTHORIZED'))
 		print 'Transmission Accepted. Logging In:' + username
 	# loop forever while the user is logged in
 	while(1):
 		print 'Waiting for a request'
 		raw = (connectionSocket.recv(1024))
+		print raw
 		if (raw == ""):
 			print "Error: Client disconnected"
 			connectionSocket.close()
@@ -72,8 +74,8 @@ if (args.p!= None):
 #create TCP ? welcoming socket
 
 serverSocket = socket(AF_INET, SOCK_STREAM)
-serverSocket.bind(('localhost', serverPort))
-
+serverSocket.bind((gethostname(), serverPort))
+print gethostname()
 #server begins listening for incoming TCP requests
 
 
