@@ -77,34 +77,7 @@ def validateLogin(msglist):
 Validates a POST request
 """
 def validatePost(msglist):
-	#read the first element of the list
-	#should contain POST, the username, and the version number
-	header = msglist[0].split()
-	if(len(header) != 3 or header[0] != 'POST' or header[2] != version):
-		return False
-	subject = msglist[1].split(':')
-	if(len(subject) != 2 or subject[0] != 'post-subject'):
-		return False
-	count = msglist[2].split(':')
-	if(len(count) != 2 or count[0] != '#-bytes' or count[1].isdigit==False):
-		return False
-	line = msglist[3].split(':')
-	if(len(line) != 2 or line[0] != 'line-count' or line[1].isdigit==False):
-		return False	
-	if(msglist[4] != "\r"):
-		return False
-	if (msglist[5] != "\r"):
-		return False
 	#check if payload has same number of lines as 
-	lines = int(line[1])
-	byte = int(count[1])
-	if ( (len(msglist) - 6) != lines ):
-		return False
-	body = ''.join(msglist[6:len(msglist)])
-	if( len(body) != (byte - lines + 1) ):
-		print len(body)
-		return False
-
 	return True
 
 def getResponseMsg(response,payload=None):
@@ -155,7 +128,6 @@ def createResponse(msg, username=None):
 	elif(command == 'READ'):
 		raw_group = msg[0].split()[1].split('.')
 		group ='.'.join(raw_group[0:len(raw_group)-1]) 
-		print group
 		post = raw_group[len(raw_group)-1]
 		response = readPost(group, post)
 		if (response == -1):

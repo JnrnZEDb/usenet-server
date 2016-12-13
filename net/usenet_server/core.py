@@ -57,7 +57,7 @@ def connection_thread(socketlist):
 			break
 		else:
 			response = createResponse(msg, username)
-			#print response
+			print response
 			connectionSocket.send(response)
 				
 	print "end of transmission, thread now dies"

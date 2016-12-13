@@ -32,7 +32,7 @@ def getGroupList(username=None):
 		for j in range(0, len(userlist)):
 			# check if user is subscribed to group
 			if(userlist != None \
- 			and userlist[j] == username):
+			and userlist[j] == username):
 				group[2] =True
 				break
 			
@@ -82,18 +82,22 @@ def writePost(msg):
 
 	#get the seperate parts of the group
 	group = msg[0].split()[1].split('.')
-	startpath = os.path.abspath(group_dir) + '/' # absolute path 
-	path = startpath #current path
+	path = os.path.abspath(group_dir) + '/' # absolute path 
 	fd = None # file descriptor
+
 	# create file path to group	
 	for i in range(0, len(group)):
-		path += group[i]
-		path+= '/'
+		path += str( group[i] )
+		path += str( "/" )
+
+	print path
+
 	if(os.path.isdir(path) == False):
 		return False
+
 	post_subject = msg[1].split(':')[1]
 	post_hash = getHash(post_subject)
-	path+= str(post_hash)
+	path += str(post_hash)
 	mutex.acquire()
 	try:
 		#prepare to write to post
@@ -123,30 +127,31 @@ def getHash(post_subject):
 
 def readPost(group, posthash):
 	mutex_sub.acquire()
-	try:	
+	try:
 		if (isGroup(group) < 0):
 			return -2
 	finally:
 		mutex_sub.release()
-	path = os.path.abspath(group_dir) + '/'	
-	path += '/'.join(group.split('.')) + '/'
-	path += posthash
-	#print path
-	if (os.path.isfile(path) == False):
-		return -1
-	mutex.aquire()
+		path = os.path.abspath(group_dir) + '/'	
+		path += '/'.join(group.split('.')) + '/'
+		path += posthash
+		mutex.aquire()
 	try:
-		fd = open(path, "r")
-		post = fd.readlines()
-		lines = str(len(post))
-		poststring = ''.join(post)
-		numbytes = str(len(poststring))
+		nlines = 0
+		nbytes = 0
+
+		with open( path, "r" ) as fd:
+			for line in fd:
+				payload += line
+				nbytes  += len( line )
+				nlines  += 1
+
 		payload = 'post-subject:' + group + '\n' +\
-			  '#-bytes:' 	  + lines + '\n' +\
-			  'line-count:'   + numbytes + '\n'+\
+			  '#-bytes:'	  + nbytes + '\n' +\
+			  'line-count:'   + nlines + '\n'+\
 			  '\r\n\r\n' +\
-			  poststring
-		return payload	
+              payload
+		return payload
 	except IOError:
 		return -2
 	finally:
@@ -277,8 +282,8 @@ def printPostList(group):
 				#print dateline
 				date = dateline[1]
 				stamp = mktime\
-				        (strptime(date, "%a, %b %d %H:%M:%S %Z %Y"))
- 				postlist.append([group, date, stamp ])		
+						(strptime(date, "%a, %b %d %H:%M:%S %Z %Y"))
+				postlist.append([group, date, stamp ])		
 	except IOError:
 		return -2
 	finally:
@@ -288,11 +293,11 @@ def formatPostList(postlist):
 	poststring = ""
 	sortedlist = sorted(postlist, key=getKey)
 	for i in range(0, len(sortedlist)):
-		poststring += 	'( ' 			  +\
+		poststring +=	'( '			  +\
 				getHash(sortedlist[i][0]) +\
-				', N, ' 		  +\
-				sortedlist[i][1] 	  +\
-				', ' 			  +\
+				', N, '			  +\
+				sortedlist[i][1]	  +\
+				', '			  +\
 				sortedlist[i][0]	  +\
 				' )\n'
 	#print sortedlist

@@ -1,2 +1,5 @@
+2016-12-13  Rimack Zelnick  <me@rzelnick.com>
+	* Fix for writing and reading requests
+
 2016-11-17  Rimack Zelnick  <me@rzelnick.com>
 	* Initial directory structure
