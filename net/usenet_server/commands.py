@@ -135,11 +135,11 @@ def readPost(group, posthash):
 		path = os.path.abspath(group_dir) + '/'	
 		path += '/'.join(group.split('.')) + '/'
 		path += posthash
-		mutex.aquire()
+		mutex.acquire()
 	try:
 		nlines = 0
 		nbytes = 0
-
+		payload = ""
 		with open( path, "r" ) as fd:
 			for line in fd:
 				payload += line
@@ -147,8 +147,8 @@ def readPost(group, posthash):
 				nlines  += 1
 
 		payload = 'post-subject:' + group + '\n' +\
-			  '#-bytes:'	  + nbytes + '\n' +\
-			  'line-count:'   + nlines + '\n'+\
+			  '#-bytes:'	  + str(nbytes) + '\n' +\
+			  'line-count:'   + str(nlines) + '\n'+\
 			  '\r\n\r\n' +\
               payload
 		return payload
