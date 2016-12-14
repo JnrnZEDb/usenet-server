@@ -138,7 +138,7 @@ def createResponse(msg, username=None):
 			return getResponseMsg('PASS', response)
 	elif(command == 'LIST'):
 		group = msg[0].split()[1]
-		response = printPostList(group)
+		response = '\n' + printPostList(group)
 
 		if(response == -1):
 			return getResponseMsg("EGID")
