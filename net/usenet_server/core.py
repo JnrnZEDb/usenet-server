@@ -17,11 +17,13 @@ import thread
 import argparse
 import commands
 import utils
+import pdb
 
 """
 establish a new connection with a client and spawn a thread to handle all requests with it.
 """
 def connection_thread(socketlist):
+        pdb.set_trace()
 	connectionSocket = socketlist[0]
 	addr = socketlist[1]
 	msg = connectionSocket.recv(1024).split('\n')

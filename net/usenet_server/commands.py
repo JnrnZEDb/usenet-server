@@ -70,7 +70,7 @@ def printGroupList(username=None):
 	strlen = len(groupstring)
 	strlines = len(grouplist)
 
-	payload = '#-bytes: ' + str(strlen) + '\n' + 'line-count: ' + str(strlines) + '\n' + '\r\n\r\n' + groupstring
+	payload = 'content-length: ' + str(strlen) + ' bytes\n' + 'line-count: ' + str(strlines) + ' lines\n' + '\r\n\r\n' + groupstring
 
 	return payload
 
@@ -279,10 +279,10 @@ def printPostList(group):
 				lines = fd.read().split('\n')
 				group = lines[1].split(': ')[1]
 				dateline = lines[3].split(': ')
-				#print dateline
+				print dateline
 				date = dateline[1]
 				stamp = mktime\
-						(strptime(date, "%a, %b %d %H:%M:%S %Z %Y"))
+						(strptime(date, "%a, %b %d %H:%M:%S %Y"))
 				postlist.append([group, date, stamp ])		
 	except IOError:
 		return -2
